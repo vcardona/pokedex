@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/pokemon_providers.dart';
+import '../views/pokemon_detail_page.dart';
 
 class PokemonListPage extends ConsumerWidget {
   const PokemonListPage({super.key});
@@ -28,31 +29,45 @@ class PokemonListPage extends ConsumerWidget {
                 final imageUrl = getImageUrl(p.url);
 
                 // ✅ MODIFICADO: usamos un Card y ListTile estilizado
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0), // espacio interno
-                    child: Row(
-                      children: [
-                        // ✅ Imagen más grande
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(imageUrl, width: 80, height: 80, fit: BoxFit.cover),
-                        ),
-                        const SizedBox(width: 16), // espacio entre imagen y texto
-                        // ✅ Texto que se adapta
-                        Expanded(
-                          child: Text(
-                            p.name.toUpperCase(),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => PokemonDetailPage(url: p.url)),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12), // efecto ripple redondeado
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0), // espacio interno
+                      child: Row(
+                        children: [
+                          // ✅ Imagen más grande
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              imageUrl,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 16), // espacio entre imagen y texto
+                          // ✅ Texto que se adapta
+                          Expanded(
+                            child: Text(
+                              p.name.toUpperCase(),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                          ),
 
-                        // Ícono de navegación opcional
-                        const Icon(Icons.chevron_right),
-                      ],
+                          // Ícono de navegación opcional
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
                     ),
                   ),
                 );

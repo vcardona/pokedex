@@ -5,7 +5,7 @@ class PokemonListItem {
   PokemonListItem({required this.name, required this.url});
 
   factory PokemonListItem.fromJson(Map<String, dynamic> json) {
-    return PokemonListItem(name: json['name'], url: json['url']);
+    return PokemonListItem(name: json['name'] as String, url: json['url'] as String);
   }
 
   Map<String, dynamic> toJson() {
