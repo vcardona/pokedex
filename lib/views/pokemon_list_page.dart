@@ -25,6 +25,8 @@ class PokemonListPage extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final p = pokemons[index];
 
+                ref.read(pokemonListProvider.notifier).loadMoreIfNeeded(index);
+
                 // ✅ NUEVO: obtenemos la imagen del Pokémon
                 final imageUrl = getImageUrl(p.url);
 
