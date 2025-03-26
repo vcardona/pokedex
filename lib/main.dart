@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:pokedex/services/pokeapi_service.dart';
 
-void main() {
+void main() async {
   runApp(MainApp());
   final api = PokeApiService();
-  api.fetchPokemonNames();
+  final list = await api.fetchPokemonList();
+
+  for (final p in list) {
+    debugPrint('${p.name} -> ${p.url}');
+  }
 }
 
 class MainApp extends StatelessWidget {
