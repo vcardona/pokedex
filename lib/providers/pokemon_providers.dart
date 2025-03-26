@@ -17,3 +17,5 @@ final pokemonDetailProvider = FutureProvider.family<PokemonDetail, String>((ref,
   final api = ref.read(pokeApiServiceProvider);
   return api.fetchPokemonDetail(url);
 });
+
+final searchQueryProvider = StateProvider<String>((ref) => '');
