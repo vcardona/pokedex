@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:pokedex/services/pokeapi_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pokedex/views/pokemon_list_page.dart';
 
 void main() async {
-  runApp(MainApp());
-  final api = PokeApiService();
-  final list = await api.fetchPokemonList();
-
-  for (final p in list) {
-    debugPrint('${p.name} -> ${p.url}');
-  }
+  runApp(ProviderScope(child: MainApp()));
 }
 
 class MainApp extends StatelessWidget {
@@ -16,12 +11,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pokédex',
-      home: Scaffold(
-        appBar: AppBar(title: Text('Pokédex')),
-        body: Center(child: Text('Mira la consola 🧪')),
-      ),
-    );
+    return MaterialApp(title: 'Pokédex', home: PokemonListPage());
   }
 }
