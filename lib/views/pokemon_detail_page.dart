@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/pokemon_providers.dart';
+import '../providers/local_providers.dart';
 
 class PokemonDetailPage extends ConsumerWidget {
-  final String url;
+  final int pokemonId;
 
-  const PokemonDetailPage({super.key, required this.url});
+  const PokemonDetailPage({super.key, required this.pokemonId});
 
   TextStyle _infoStyle() => const TextStyle(fontSize: 16, color: Colors.black87);
   TextStyle _sectionTitleStyle() =>
@@ -13,7 +13,7 @@ class PokemonDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(pokemonDetailProvider(url));
+    final detailAsync = ref.watch(localPokemonDetailProvider(pokemonId));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle del Pokémon')),
@@ -22,7 +22,7 @@ class PokemonDetailPage extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (pokemon) {
           final imageUrl =
-              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png';
+              'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.pokemonId}.png';
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -53,7 +53,7 @@ class PokemonDetailPage extends ConsumerWidget {
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
-                          Text('ID: ${pokemon.id}', style: _infoStyle()),
+                          Text('ID: ${pokemon.pokemonId}', style: _infoStyle()),
                           Text('Altura: ${pokemon.height}', style: _infoStyle()),
                           Text('Peso: ${pokemon.weight}', style: _infoStyle()),
                           const SizedBox(height: 16),
@@ -61,10 +61,7 @@ class PokemonDetailPage extends ConsumerWidget {
                           Text('Tipo(s):', style: _sectionTitleStyle()),
                           Wrap(
                             spacing: 8,
-                            children:
-                                pokemon.types.map((type) {
-                                  return Chip(label: Text(type.type.name));
-                                }).toList(),
+                            children: pokemon.types.map((type) => Chip(label: Text(type))).toList(),
                           ),
                           const SizedBox(height: 16),
 
@@ -72,22 +69,29 @@ class PokemonDetailPage extends ConsumerWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children:
-                                pokemon.abilities.map((ability) {
-                                  return Text('- ${ability.ability.name}', style: _infoStyle());
-                                }).toList(),
+                                pokemon.abilities
+                                    .map((ability) => Text('- $ability', style: _infoStyle()))
+                                    .toList(),
                           ),
                           const SizedBox(height: 16),
 
                           Text('Estadísticas base:', style: _sectionTitleStyle()),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children:
-                                pokemon.stats.map((stat) {
-                                  return Text(
-                                    '${stat.stat.name}: ${stat.baseStat}',
-                                    style: _infoStyle(),
-                                  );
-                                }).toList(),
+                            children: [
+                              Text('HP: ${pokemon.hp}', style: _infoStyle()),
+                              Text('Ataque: ${pokemon.attack}', style: _infoStyle()),
+                              Text('Defensa: ${pokemon.defense}', style: _infoStyle()),
+                              Text(
+                                'Ataque Especial: ${pokemon.specialAttack}',
+                                style: _infoStyle(),
+                              ),
+                              Text(
+                                'Defensa Especial: ${pokemon.specialDefense}',
+                                style: _infoStyle(),
+                              ),
+                              Text('Velocidad: ${pokemon.speed}', style: _infoStyle()),
+                            ],
                           ),
                         ],
                       ),

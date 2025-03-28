@@ -1,62 +1,77 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pokedex/widgets/type_filter_sheet.dart';
+import '../providers/local_filtered_provider.dart';
 import '../providers/pokemon_providers.dart';
 import '../views/pokemon_detail_page.dart';
 
 class PokemonListPage extends ConsumerWidget {
   const PokemonListPage({super.key});
 
-  // ✅ NUEVO: función para obtener la imagen desde la URL del Pokémon
-  String getImageUrl(String url) {
-    final id = url.split('/')[url.split('/').length - 2]; // extrae el ID
-    return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(pokemonListProvider);
+    final state = ref.watch(filteredPokemonProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pokédex')),
-      body: state.when(
-        data: (pokemons) {
-          final query = ref.watch(searchQueryProvider);
-          final filtered =
-              query.isEmpty
-                  ? pokemons
-                  : pokemons.where((p) => p.name.toLowerCase().contains(query)).toList();
+      appBar: AppBar(
+        title: Text(ref.watch(selectedTypeProvider) ?? 'Pokédex'),
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar Pokémon...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  onChanged: (value) {
-                    ref.read(searchQueryProvider.notifier).state = value.toLowerCase();
-                  },
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
+                builder: (_) => const TypeFilterSheet(),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // 🔍 Campo de búsqueda
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar Pokémon...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: Colors.white,
               ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final p = filtered[index];
+              onChanged: (value) {
+                ref.read(searchQueryProvider.notifier).state = value.toLowerCase();
+              },
+            ),
+          ),
 
-                    ref.read(pokemonListProvider.notifier).loadMoreIfNeeded(index);
-                    final imageUrl = getImageUrl(p.url);
+          // 🔁 Lista dinámica de Pokémon
+          Expanded(
+            child: state.when(
+              data: (pokemons) {
+                if (pokemons.isEmpty) {
+                  return const Center(child: Text('No se encontraron Pokémon con estos filtros'));
+                }
+
+                return ListView.builder(
+                  itemCount: pokemons.length,
+                  itemBuilder: (context, index) {
+                    final p = pokemons[index];
+                    final imageUrl =
+                        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.pokemonId}.png';
 
                     return InkWell(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => PokemonDetailPage(url: p.url)),
+                          MaterialPageRoute(
+                            builder: (_) => PokemonDetailPage(pokemonId: p.pokemonId),
+                          ),
                         );
                       },
                       borderRadius: BorderRadius.circular(12),
@@ -74,7 +89,7 @@ class PokemonListPage extends ConsumerWidget {
                                   imageUrl,
                                   width: 80,
                                   height: 80,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -91,13 +106,22 @@ class PokemonListPage extends ConsumerWidget {
                       ),
                     );
                   },
-                ),
-              ),
-            ],
-          );
-        },
-        error: (error, stackTrace) => Center(child: Text('Error: $error')),
-        loading: () => const Center(child: CircularProgressIndicator()),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) {
+                if (err.toString().contains('Isar')) {
+                  return const Center(
+                    child: Text(
+                      'Error: La base de datos no está inicializada. Por favor, reinicia la aplicación.',
+                    ),
+                  );
+                }
+                return Center(child: Text('Error: $err'));
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

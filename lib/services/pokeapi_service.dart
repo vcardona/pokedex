@@ -28,4 +28,17 @@ class PokeApiService {
       throw Exception('Error al cargar detalle del Pokémon');
     }
   }
+
+  Future<List<String>> fetchPokemonTypes(String url) async {
+    final uri = Uri.parse(url);
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final types = data['types'] as List;
+      return types.map((t) => t['type']['name'].toString()).toList();
+    } else {
+      throw Exception('Error al obtener tipos del Pokémon');
+    }
+  }
 }
