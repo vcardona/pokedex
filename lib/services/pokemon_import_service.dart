@@ -4,11 +4,15 @@ import 'package:http/http.dart' as http;
 import 'package:pokedex/db/isar_service.dart';
 import 'package:pokedex/models/pokemon_isar_model.dart';
 
+typedef ProgressCallback = void Function(int current, int total, String message);
+
 class PokemonImportService {
   static const baseUrl = 'https://pokeapi.co/api/v2/pokemon';
   static const int totalToFetch = 200; // puedes ajustarlo
 
-  Future<void> importAll() async {
+  Future<void> importAll(ProgressCallback onProgress) async {
+    onProgress(0, totalToFetch, 'Limpiando datos anteriores...');
+
     // ✅ Primero: borrar todos los Pokémon existentes
     await IsarService.isar.writeTxn(() async {
       await IsarService.isar.pokemonIsarModels.clear();
@@ -18,8 +22,11 @@ class PokemonImportService {
 
     int offset = 0;
     const limit = 20;
+    int pokemonProcessed = 0;
 
     while (offset < totalToFetch) {
+      onProgress(pokemonProcessed, totalToFetch, 'Descargando lista de Pokémon...');
+
       final uri = Uri.parse('$baseUrl?offset=$offset&limit=$limit');
       final response = await http.get(uri);
 
@@ -83,6 +90,12 @@ class PokemonImportService {
               await IsarService.isar.pokemonIsarModels.put(model);
             });
 
+            pokemonProcessed++;
+            onProgress(
+              pokemonProcessed,
+              totalToFetch,
+              'Descargando #${id.toString().padLeft(3, '0')} - ${name.toUpperCase()}',
+            );
             debugPrint('✅ Guardado: $name [$types]');
           }
         }
@@ -94,6 +107,7 @@ class PokemonImportService {
       }
     }
 
+    onProgress(totalToFetch, totalToFetch, '¡Importación completa!');
     debugPrint('✅ Importación completa');
   }
 }

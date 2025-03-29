@@ -13,6 +13,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   String status = 'Verificando base de datos...';
+  double progress = 0.0;
 
   @override
   void initState() {
@@ -21,14 +22,16 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _initApp() async {
-    setState(() => status = 'Limpiando datos anteriores...');
-    await IsarService.isar.writeTxn(() async {
-      await IsarService.isar.pokemonIsarModels.clear(); // ✅ Borra todos los anteriores
-    });
-
-    setState(() => status = 'Descargando datos actualizados...');
     final importer = PokemonImportService();
-    await importer.importAll();
+
+    await importer.importAll((current, total, message) {
+      if (mounted) {
+        setState(() {
+          status = message;
+          progress = current / total;
+        });
+      }
+    });
 
     await Future.delayed(const Duration(milliseconds: 600));
 
@@ -45,9 +48,49 @@ class _SplashPageState extends State<SplashPage> {
     return Scaffold(
       backgroundColor: const Color(0xfffef5fc),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(status)],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo o título
+              const Text(
+                'Pokédex',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 32),
+
+              // Barra de progreso
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: Colors.grey[200],
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+                  minHeight: 10,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Mensaje de estado
+              Text(
+                status,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+
+              // Porcentaje
+              const SizedBox(height: 8),
+              Text(
+                '${(progress * 100).toInt()}%',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
