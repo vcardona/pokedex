@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pokedex/db/isar_service.dart';
-import 'package:pokedex/models/pokemon_isar_model.dart';
 import 'package:pokedex/services/pokemon_import_service.dart';
 import 'pokemon_list_page.dart';
 

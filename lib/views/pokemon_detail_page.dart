@@ -97,7 +97,7 @@ class PokemonDetailPage extends ConsumerWidget {
               'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.pokemonId}.png';
 
           // Usar el primer tipo para el gradiente
-          final typeColor = _getTypeColor(pokemon.types.first);
+          //final typeColor = _getTypeColor(pokemon.types.first);
 
           return CustomScrollView(
             slivers: [
